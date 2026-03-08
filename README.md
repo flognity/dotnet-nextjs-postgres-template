@@ -68,6 +68,18 @@ Stop the stack:
 docker compose down
 ```
 
+## Continuous Integration
+
+GitHub Actions runs CI for pull requests and for pushes to `main` using [`.github/workflows/ci.yml`](./.github/workflows/ci.yml).
+
+The workflow currently validates:
+
+- backend restore and build with .NET
+- frontend install with `npm ci`
+- frontend production build with `npm run build`
+
+If you change backend build behavior, Node.js requirements, or frontend build commands, update the workflow to match.
+
 ## How the Single-Server Setup Works
 
 The frontend is still authored in `frontend/`, but it is exported as static files and bundled into the ASP.NET image:
