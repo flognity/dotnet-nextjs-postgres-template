@@ -1,0 +1,6 @@
+-- ============================================================================
+-- SPDX-License-Identifier: MIT
+-- Copyright (c) 2026 Florian Wilhelm
+-- Description: Database schema for the template web application, 
+--              implemented with PostgreSQL.
+-- ============================================================================

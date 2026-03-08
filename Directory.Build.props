@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <!-- Root directory of the repository (folder containing this file) -->
+    <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
+    <!-- Convenience roots -->
+    <BinRoot>$(RepoRoot)bin/</BinRoot>
+    <TempRoot>$(RepoRoot)temp/</TempRoot>
+    <!-- Place intermediate and temporary build files under the repository temp folder -->
+    <BaseIntermediateOutputPath>$(TempRoot)obj/$(MSBuildProjectName)/$(Configuration)/</BaseIntermediateOutputPath>
+    <IntermediateOutputPath>$(TempRoot)obj/$(MSBuildProjectName)/$(Configuration)/</IntermediateOutputPath>
+    <!-- Disable SDK auto-generation of assembly attributes globally to prevent duplicates when intermediate folders move -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+</Project>

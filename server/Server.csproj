@@ -1,0 +1,74 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <AssemblyName>Server</AssemblyName>
+    <RootNamespace>Server</RootNamespace>
+  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Platforms>AnyCPU;x64</Platforms>
+	</PropertyGroup>
+	<!-- Redirect build outputs to repository root bin and temporary files to root/temp -->
+	<PropertyGroup>
+		<!-- Build outputs (dll/exe) will be placed in the repository root `bin/<Configuration>/` -->
+		<OutputPath>$(RepoRoot)bin/$(Configuration)/</OutputPath>
+		<!-- Disable auto-generation of assembly attributes to avoid duplicate attribute errors when multiple intermediate folders exist -->
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<!-- Intermediate and obj files will be placed in the repository root `temp/obj/...` -->
+		<BaseIntermediateOutputPath>$(RepoRoot)temp/obj/$(MSBuildProjectName)/$(Configuration)/</BaseIntermediateOutputPath>
+		<IntermediateOutputPath>$(RepoRoot)temp/obj/$(MSBuildProjectName)/$(Configuration)/</IntermediateOutputPath>
+		<!-- Publish outputs will be placed under repository root `bin/publish/<ProjectName>/` -->
+		<PublishDir>$(RepoRoot)bin/publish/$(MSBuildProjectName)/</PublishDir>
+		<UserSecretsId>38215614-e67f-4f4e-b5cb-5c831e48c06e</UserSecretsId>
+		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+		<!-- build context needs to include the frontend directory so the Dockerfile's
+		     multi‑stage node step can copy it.  Visual Studio sends the path below to
+		     `docker build -f ... -t ... <context>`.  Using the solution root makes the
+		     entire repo available. -->
+		<DockerfileContext>$(SolutionDir)</DockerfileContext>
+	</PropertyGroup>
+
+  <ItemGroup>
+    <!-- EF Core PostgreSQL for data access and migrations -->
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Show DB migration script in Solution Explorer under the Server project -->
+    <None Include="..\db\migrations\V1__initial_schema.sql" Link="db\migrations\V1__initial_schema.sql" />
+  </ItemGroup>
+
+  <!-- disable Visual Studio's automatic file sync/mounting.  leaving
+       this element empty tells the tooling not to bind-mount the project
+       directory into the running container, so the image's built-in assets
+       (including wwwroot) remain intact. -->
+  <PropertyGroup>
+    <DockerfileRunMounts></DockerfileRunMounts>
+  </PropertyGroup>
+
+	<!-- run npm on every build/publish -->
+<PropertyGroup>
+    <!-- set true during container image builds to avoid requiring Node inside SDK image -->
+    <SkipFrontendBuild Condition="'$(SkipFrontendBuild)'==''">false</SkipFrontendBuild>
+  </PropertyGroup>
+
+  <Target Name="BuildFrontend" BeforeTargets="Build" Condition="'$(SkipFrontendBuild)'!='true'">
+		<Message Text="Building frontend (static export via next.config)…" Importance="high" />
+		<Exec Command="npm install" WorkingDirectory="$(MSBuildProjectDirectory)\..\frontend" Condition="Exists('$(MSBuildProjectDirectory)\..\frontend')" />
+		<Exec Command="npm run build" WorkingDirectory="$(MSBuildProjectDirectory)\..\frontend" Condition="Exists('$(MSBuildProjectDirectory)\..\frontend')" />
+	</Target>
+
+	<Target Name="PublishFrontend" AfterTargets="Publish" Condition="'$(SkipFrontendBuild)'!='true'">
+		<Message Text="Copying frontend output to wwwroot…" Importance="high" />
+		<RemoveDir Directories="$(PublishDir)wwwroot" />
+		<MakeDir Directories="$(PublishDir)wwwroot" />
+		<!-- static export is placed into frontend/out -->
+		<ItemGroup>
+			<FrontendExportFiles Include="$(SolutionDir)frontend\out\**\*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(FrontendExportFiles)" DestinationFolder="$(PublishDir)wwwroot\%(RecursiveDir)" SkipUnchangedFiles="true" />
+	</Target>
+</Project>

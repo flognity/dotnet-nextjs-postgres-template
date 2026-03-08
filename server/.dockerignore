@@ -1,0 +1,47 @@
+##  Docker ignore rules for the server image build context.
+
+# IDE and editor metadata
+**/.classpath
+**/.project
+**/.settings
+**/.toolstarget
+**/.vs
+**/.vscode
+**/*.*proj.user
+
+# Source control metadata
+**/.git
+**/.gitignore
+**/.dockerignore
+
+# Build outputs and generated artifacts
+**/*.dbmdl
+**/*.jfm
+**/bin
+**/obj
+**/npm-debug.log
+
+# Frontend and package manager dependencies
+**/node_modules
+
+# Local development and deployment overrides
+**/.env
+**/azds.yaml
+**/secrets.dev.yaml
+**/values.dev.yaml
+
+# Docker and orchestration files not needed inside the build context
+**/charts
+**/docker-compose*
+**/Dockerfile*
+
+# Repository documents not needed for image build
+LICENSE
+README.md
+
+# Keep selected Git metadata available when needed by tooling
+!**/.gitignore
+!.git/HEAD
+!.git/config
+!.git/packed-refs
+!.git/refs/heads/**

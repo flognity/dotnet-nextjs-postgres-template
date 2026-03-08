@@ -1,0 +1,21 @@
+{
+  "profiles": {
+    "Server": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:63100;http://localhost:63101"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}", // use the published Docker host port
+      // let Docker assign a host port and let VS open that mapped port
+      "publishAllPorts": true,
+      // container images don’t have the dev-certs store, so skip SSL
+      "useSSL": false
+    }
+  }
+}
