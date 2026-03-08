@@ -1,0 +1,52 @@
+name: CI
+
+# Run basic validation for pull requests and changes merged to main.
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      BUILD_CONFIGURATION: Release
+
+    steps:
+      # Fetch the repository contents for the runner.
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install the .NET SDK version pinned in global.json.
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      # Install Node.js for the Next.js frontend build and cache npm packages.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # Restore NuGet packages before building the backend project.
+      - name: Restore backend
+        run: dotnet restore server/Server.csproj -p:Configuration=${{ env.BUILD_CONFIGURATION }}
+
+      # Build only the ASP.NET project here. The project can build the frontend
+      # as part of MSBuild, but CI runs frontend validation as a separate step.
+      - name: Build backend
+        run: dotnet build server/Server.csproj --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore /p:SkipFrontendBuild=true
+
+      # Install exact frontend dependencies from the lockfile.
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      # Verify the production static export used by the server container.
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
